@@ -1,5 +1,6 @@
 import { getAdminUsers } from "@/lib/actions/admin"
 import { Shield, User, Car } from "lucide-react"
+import { UserActions } from "@/components/admin/user-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -27,6 +28,7 @@ export default async function AdminUsersPage() {
                 <th className="px-6 py-4">Role</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Joined</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -37,6 +39,12 @@ export default async function AdminUsersPage() {
                       {user.role === 'driver' ? <Car className="w-4 h-4" /> : <User className="w-4 h-4" />}
                     </div>
                     {user.full_name}
+                    {user.is_blocked === 1 && (
+                      <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full ml-2">Blocked</span>
+                    )}
+                    {user.is_verified === 1 && (
+                      <span className="bg-indigo-100 text-indigo-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full ml-2">Verified</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 font-medium text-slate-600">
                     +220 {user.phone}
@@ -62,12 +70,15 @@ export default async function AdminUsersPage() {
                   <td className="px-6 py-4 text-slate-400 font-medium text-xs">
                     {new Date(user.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
+                  <td className="px-6 py-4 text-right flex justify-end">
+                    <UserActions user={user} />
+                  </td>
                 </tr>
               ))}
               
               {allUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-medium">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400 font-medium">
                     No users found.
                   </td>
                 </tr>

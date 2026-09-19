@@ -64,14 +64,54 @@ export async function getAdminRides() {
 export async function getAdminUsers() {
   try {
     const [clients] = await pool.execute<RowDataPacket[]>(
-      "SELECT user_id as id, full_name, phone, 'client' as role, created_at FROM clients ORDER BY created_at DESC LIMIT 50"
+      "SELECT user_id as id, full_name, phone, 'client' as role, created_at, is_blocked FROM clients ORDER BY created_at DESC LIMIT 50"
     )
     const [drivers] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, full_name, phone, 'driver' as role, created_at, IF(is_available=1, 'online', 'offline') as status FROM drivers ORDER BY created_at DESC LIMIT 50"
+      "SELECT id, full_name, phone, 'driver' as role, created_at, IF(is_available=1, 'online', 'offline') as status, is_blocked, is_verified FROM drivers ORDER BY created_at DESC LIMIT 50"
     )
     return { clients, drivers }
   } catch (error) {
     console.error("Admin users error:", error)
     return { clients: [], drivers: [] }
+  }
+}
+
+export async function deleteUser(id: string, role: string) {
+  try {
+    if (role === "client") {
+      await pool.execute("DELETE FROM clients WHERE user_id = ?", [id])
+    } else {
+      await pool.execute("DELETE FROM drivers WHERE id = ?", [id])
+    }
+    return { success: true }
+  } catch (error) {
+    console.error("Delete user error:", error)
+    return { success: false, error: "Failed to delete user" }
+  }
+}
+
+export async function toggleBlockUser(id: string, role: string, currentlyBlocked: boolean) {
+  try {
+    const newValue = currentlyBlocked ? 0 : 1
+    if (role === "client") {
+      await pool.execute("UPDATE clients SET is_blocked = ? WHERE user_id = ?", [newValue, id])
+    } else {
+      await pool.execute("UPDATE drivers SET is_blocked = ? WHERE id = ?", [newValue, id])
+    }
+    return { success: true }
+  } catch (error) {
+    console.error("Toggle block error:", error)
+    return { success: false, error: "Failed to update status" }
+  }
+}
+
+export async function toggleVerifyDriver(id: string, currentlyVerified: boolean) {
+  try {
+    const newValue = currentlyVerified ? 0 : 1
+    await pool.execute("UPDATE drivers SET is_verified = ? WHERE id = ?", [newValue, id])
+    return { success: true }
+  } catch (error) {
+    console.error("Toggle verify error:", error)
+    return { success: false, error: "Failed to verify driver" }
   }
 }
