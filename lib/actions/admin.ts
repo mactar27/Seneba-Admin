@@ -67,7 +67,7 @@ export async function getAdminUsers() {
       "SELECT user_id as id, full_name, phone, 'client' as role, created_at FROM clients ORDER BY created_at DESC LIMIT 50"
     )
     const [drivers] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, full_name, phone, 'driver' as role, created_at, status FROM drivers ORDER BY created_at DESC LIMIT 50"
+      "SELECT id, full_name, phone, 'driver' as role, created_at, IF(is_available=1, 'online', 'offline') as status FROM drivers ORDER BY created_at DESC LIMIT 50"
     )
     return { clients, drivers }
   } catch (error) {
